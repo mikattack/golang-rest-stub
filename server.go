@@ -3,17 +3,23 @@ package main
 import (
   "bytes"
   "fmt"
+  "io"
   "log"
+  "mime"
   "net/http"
+  "os"
   "strconv"
+  "strings"
   "time"
 )
 
 
 func handleRequest(res http.ResponseWriter, req *http.Request) {
   var delay time.Duration = 0
+  var reader io.Reader = new(bytes.Buffer)
+  charset := "utf-8"
+  mimetype := "application/octet-stream"
   status := 200
-  writer := bytes.Buffer{}
 
   // Delay response, when requested
   if val := req.Header.Get("X-Stub-Delay"); val != "" {
@@ -35,12 +41,38 @@ func handleRequest(res http.ResponseWriter, req *http.Request) {
     }
   }
 
+  // Determine appropriate MIME type
+  if val := req.Header.Get("X-Stub-Content-Type"); val != "" {
+    mediatype, _, err := mime.ParseMediaType(val)
+    if err != nil {
+      log.Printf("[%s]: Invalid MIME type specified (%s)\n", req.URL, val)
+    } else {
+      mimetype = mediatype
+    }
+  }
+
+  // Determine character set (no validation here)
+  if val := req.Header.Get("X-Stub-Charset"); val != "" {
+    charset = val
+  }  
+
   // Use stub content for response body, when possible
+  if val := req.Header.Get("X-Stub-Content"); val != "" {
+    val = strings.Replace(val, "..", "", 0)
+    fd, err := os.Open(config["content"] + "/" + val)
+    if err != nil {
+      fmt.Printf("Failed to read stub content: %s\n", config["content"] + "/" + val)
+    } else {
+      reader = fd
+    }
+    defer fd.Close()
+  }
 
   // Respond
   time.Sleep(delay)
+  res.Header().Set("Content-Type", mimetype + "; charset=" + charset)
   res.WriteHeader(status)
-  if _, err := writer.WriteTo(res); err != nil {
+  if _, err := io.Copy(res, reader); err != nil {
     log.Printf("[%s]: Failed to write response\n", req.URL)
   }
 }

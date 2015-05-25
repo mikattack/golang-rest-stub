@@ -25,22 +25,24 @@ func init() {
   config, debug := getConfig()
   writers := []io.Writer{}
 
-  // Enable STDOUT debug logging (if requested)
-  if (debug) {
-    fmt.Println("Debugging enabled")
-    writers = append(writers, os.Stdout)
-  }
-
   // Enable file logging (when possible)
-  if (config["log"] != "") {
-    fmt.Printf("Logging to file: %s\n", config["log"] + "/provision.log")
-    fd, err := os.OpenFile(config["log"] + "/provision.log", os.O_APPEND | os.O_WRONLY | os.O_CREATE, 0600)
+  // NOT WORKING - Disabled for now
+  if false && config["log"] != "" {
+    fmt.Printf("Logging to file: %s\n", config["log"])
+    fd, err := os.OpenFile(config["log"], os.O_APPEND | os.O_WRONLY | os.O_CREATE, 0600)
     if err != nil {
       fmt.Printf("File logging disabled, unable to access file\n")
+      fmt.Println(err.Error())
     } else {
-      defer fd.Close()
       writers = append(writers, fd)
     }
+    defer fd.Close()
+  }
+
+  // Enable STDOUT debug logging (if requested)
+  if debug {
+    fmt.Println("Debugging enabled")
+    writers = append(writers, os.Stdout)
   }
 
   log.SetOutput(io.MultiWriter(writers...))

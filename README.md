@@ -37,5 +37,7 @@ rest-stub
 
 The application supports the following options and defaults:
 
-- **`-d`** - Stub content directory (`/var/tmp/rest-stub`)
-- **`-p`** - Port (`48200`)
+- **`--content`** - Stub content directory (`/var/tmp/rest-stub`)
+- **`--debug`** - Enables debugging output (`false`)
+- **`--log`** - Log file (`/var/log/rest-stub`), empty or invalid file disables file logging
+- **`--port`** - Port (`48200`)

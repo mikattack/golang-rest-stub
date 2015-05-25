@@ -36,8 +36,7 @@ func init() {
     fmt.Printf("Logging to file: %s\n", config["log"] + "/provision.log")
     fd, err := os.OpenFile(config["log"] + "/provision.log", os.O_APPEND | os.O_WRONLY | os.O_CREATE, 0600)
     if err != nil {
-      fmt.Printf("File logging disabled, unable to access file")
-      fmt.Printf(err)
+      fmt.Printf("File logging disabled, unable to access file\n")
     } else {
       defer fd.Close()
       writers = append(writers, fd)

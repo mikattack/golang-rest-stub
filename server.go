@@ -85,7 +85,7 @@ func handleRequest(res http.ResponseWriter, req *http.Request) {
 
 
 func main() {
-  config, _ := getConfig()
+  config := getConfig()
   fmt.Printf("Starting HTTP server on port [%s]\n", config["port"])
   http.HandleFunc("/", handleRequest)
   http.ListenAndServe(":" + config["port"], nil)

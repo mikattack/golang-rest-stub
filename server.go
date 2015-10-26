@@ -54,9 +54,15 @@ func handleRequest(res http.ResponseWriter, req *http.Request) {
   // Determine character set (no validation here)
   if val := req.Header.Get("X-Stub-Charset"); val != "" {
     charset = val
-  }  
+  }
 
-  // Use stub content for response body, when possible
+  // Echo request body, if specified
+  // NOTE: The 'X-Stub-Content' header overrides this option
+  if val := req.Header.Get("X-Stub-Echo"); val != "" {
+    reader = req.Body
+  }
+
+  // Use stub content for response body, if specified
   if val := req.Header.Get("X-Stub-Content"); val != "" {
     val = strings.Replace(val, "..", "", 0)
     fd, err := os.Open(config["content"] + "/" + val)

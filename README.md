@@ -43,5 +43,5 @@ rest-stub
 The application supports the following options and defaults:
 
 - **`--content`** - Stub content directory (`/var/tmp/rest-stub`)
-- **`--debug`** - Enables debugging output (`false`)
+- **`--log-level`** - Set logging level (`INFO`)
 - **`--port`** - Port (`48200`)

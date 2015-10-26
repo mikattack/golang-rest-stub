@@ -3,7 +3,7 @@
 <plist version="1.0">
   <dict>
     <key>Label</key>
-    <string>com.mikattack.rest-stub.plist</string>
+    <string>com.mikattack.rest-stub</string>
     <key>ProgramArguments</key>
     <array>
       <string>/usr/local/bin/rest-stub</string>

@@ -27,7 +27,7 @@ import (
 
 
 const (
-  DEFAULT_LOG_LEVEL string  = "WARN"
+  DEFAULT_LOG_LEVEL string  = "INFO"
   DEFAULT_PORT string       = "48200"
   DEFAULT_CONTENT string    = "/var/tmp/rest-stub"
 )

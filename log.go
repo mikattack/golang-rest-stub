@@ -10,9 +10,8 @@ import (
 /* 
  * All logging is done to STDOUT.
  * 
- * Logging levels are currently supported, but currently not configurable.
- * A log entry's level is indicated within the log message itself with
- * a pattern like this: [LEVEL].
+ * Logging levels are currently supported. A log entry's level is indicated
+ * within the log message itself with a pattern like : "[LEVEL] message."
  * 
  * Examples:
  *  // Assuming minimum level is 'WARN'
@@ -20,12 +19,13 @@ import (
  *  log.Print("[WARN] Warning")     // Prints
  *  log.Print("[ERROR] Erring")     // Prints
  * 
- * Currently, the following levels are supported: DEBUG, WARN, ERROR.
+ * Currently, the following levels are supported: DEBUG, INFO, WARN, ERROR.
  */
 func init() {
+  config := getConfig()
   filter := &logutils.LevelFilter{
-    Levels:   []logutils.LogLevel{"DEBUG", "WARN", "ERROR"},
-    MinLevel: logutils.LogLevel("WARN"),
+    Levels:   []logutils.LogLevel{"DEBUG", "INFO", "WARN", "ERROR"},
+    MinLevel: logutils.LogLevel(config["log-level"]),
     Writer:   os.Stdout,
   }
   log.SetOutput(filter)

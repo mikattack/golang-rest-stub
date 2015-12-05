@@ -1,6 +1,7 @@
 package main // import "github.com/mikattack/golang-rest-stub"
 
 import (
+  "bufio"
   "bytes"
   "fmt"
   "io"
@@ -15,16 +16,22 @@ import (
 
 
 func handleRequest(res http.ResponseWriter, req *http.Request) {
-  var delay time.Duration = 0
-  var reader io.Reader = new(bytes.Buffer)
+  var (
+    delay   time.Duration   = 0
+    body    io.Reader       = req.Body
+    output  io.Reader       = new(bytes.Buffer)
+  )
+
   charset := "utf-8"
   mimetype := "application/octet-stream"
   status := 200
 
-  withEcho := "false"
+  withEcho := false
   content := "n/a"
 
-  log.Printf("[DEBUG] Request '%s'", req.URL)
+  defer req.Body.Close()
+
+  log.Printf("[DEBUG] Received request '%s'", req.URL)
 
   // Delay response, when requested
   if val := req.Header.Get("X-Stub-Delay"); val != "" {
@@ -64,8 +71,7 @@ func handleRequest(res http.ResponseWriter, req *http.Request) {
   // Echo request body, if specified
   // NOTE: The 'X-Stub-Content' header overrides this option
   if val := req.Header.Get("X-Stub-Echo"); val != "" {
-    reader = req.Body
-    withEcho = "true"
+    withEcho = true
   }
 
   // Use stub content for response body, if specified
@@ -75,26 +81,64 @@ func handleRequest(res http.ResponseWriter, req *http.Request) {
     if err != nil {
       fmt.Printf("[ERROR] Failed to read stub content: %s\n", config["content"] + "/" + val)
     } else {
-      reader = fd
+      output = fd
       content = config["content"] + "/" + val
+      withEcho = false
     }
     defer fd.Close()
   }
 
-  log.Printf("[DEBUG] X-Stub-Delay: %s\n", delay)
-  log.Printf("[DEBUG] X-Stub-Status: %d\n", status)
-  log.Printf("[DEBUG] X-Stub-Content-Type: %s\n", mimetype)
-  log.Printf("[DEBUG] X-Stub-Charset: %s\n", charset)
-  log.Printf("[DEBUG] X-Stub-Echo: %s\n", withEcho)
-  log.Printf("[DEBUG] X-Stub-Content: %s\n", content)
+  // Buffer request body, so we can echo it back
+  buffer := new(bytes.Buffer)
+  if _, err := io.Copy(buffer, body); err != nil {
+    log.Printf("[Error] Failed to buffer the request body\n")
+  }
+  reader := bytes.NewReader(buffer.Bytes())
 
+  if withEcho == true {
+    output = reader
+  }
+
+  // Echo request as debug output
+  log.Printf("[DEBUG] Headers:\n")
+  log.Printf("[DEBUG]   X-Stub-Delay: %s\n", delay)
+  log.Printf("[DEBUG]   X-Stub-Status: %d\n", status)
+  log.Printf("[DEBUG]   X-Stub-Content-Type: %s\n", mimetype)
+  log.Printf("[DEBUG]   X-Stub-Charset: %s\n", charset)
+  log.Printf("[DEBUG]   X-Stub-Echo: %t\n", withEcho)
+  log.Printf("[DEBUG]   X-Stub-Content: %s\n", content)
+  log.Printf("[DEBUG] Content (%d):\n", buffer.Len())
+
+  scanner := bufio.NewScanner(bytes.NewReader(buffer.Bytes()))
+  for scanner.Scan() {
+    log.Printf("[DEBUG]   %s\n", scanner.Text())
+  }
+  if err := scanner.Err(); err != nil {
+    log.Printf("[ERROR] Failed to read buffered request body\n")
+  }
 
   // Respond
   time.Sleep(delay)
   res.Header().Set("Content-Type", mimetype + "; charset=" + charset)
   res.WriteHeader(status)
-  if _, err := io.Copy(res, reader); err != nil {
-    log.Printf("[Error] Failed to write response\n", req.URL)
+  if _, err := io.Copy(res, output); err != nil {
+    log.Printf("[Error] Failed to write response\n")
+    return
+  }
+
+  // Echo response as debug output
+  log.Printf("[DEBUG] Sent %d response", status)
+  log.Printf("[DEBUG] Headers:\n")
+  for key, value := range res.Header() {
+    log.Printf("[DEBUG]   %s: %s\n", key, value)
+  }
+  log.Printf("[DEBUG] Content:\n")
+  scanner = bufio.NewScanner(bytes.NewReader(buffer.Bytes()))
+  for scanner.Scan() {
+    log.Printf("[DEBUG]   %s\n", scanner.Text())
+  }
+  if err := scanner.Err(); err != nil {
+    log.Printf("[ERROR] Failed to read buffered response body\n")
   }
 }
 

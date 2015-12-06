@@ -31,7 +31,7 @@ func handleRequest(res http.ResponseWriter, req *http.Request) {
 
   defer req.Body.Close()
 
-  log.Printf("[DEBUG] Received request '%s'", req.URL)
+  log.Printf("[DEBUG] Received request '%s %s'", req.Method, req.URL)
 
   // Delay response, when requested
   if val := req.Header.Get("X-Stub-Delay"); val != "" {

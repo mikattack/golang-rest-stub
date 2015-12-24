@@ -101,6 +101,7 @@ func handleRequest(res http.ResponseWriter, req *http.Request) {
 
   // Echo request as debug output
   log.Printf("[DEBUG] Headers:\n")
+  log.Printf("[DEBUG]   Content-Type: %s\n", req.Header.Get("Content-Type"))
   log.Printf("[DEBUG]   X-Stub-Delay: %s\n", delay)
   log.Printf("[DEBUG]   X-Stub-Status: %d\n", status)
   log.Printf("[DEBUG]   X-Stub-Content-Type: %s\n", mimetype)

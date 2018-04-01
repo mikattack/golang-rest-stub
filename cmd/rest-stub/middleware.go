@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	_            = iota
-	charsetKey   = iota
-	contentKey   = iota
-	mimeKey      = iota
-	requestIdKey = iota
+	_ = iota
+	charsetKey
+	contentKey
+	mimeKey
+	requestIdKey
 )
 
 // ==========================================================================
